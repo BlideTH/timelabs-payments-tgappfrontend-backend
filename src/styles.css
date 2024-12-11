@@ -1,0 +1,167 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter&family=Titillium+Web&display=swap");
+
+:root {
+    --main-padding: 16px;
+    --secondary-padding: 8px;
+    --font-color-primary: var(--tg-theme-text-color);
+    --font-color-secondary: var(--tg-theme-hint-color);
+    --bg-primary: var(--tg-theme-bg-color);
+    --bg-secondary: var(--tg-theme-secondary-bg-color);
+    --btn-bg-color: var(--tg-theme-button-color);
+    --btn-text-color: var(--tg-theme-button-text-color);
+    --link-color: var(--tg-theme-link-color);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 1rem; /* Increased for better readability */
+    padding: var(--main-padding);
+    font-family: "Inter", sans-serif;
+    background: var(--bg-primary);
+    color: var(--font-color-primary);
+}
+
+/* Link Styles */
+a {
+    color: var(--link-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: darken(var(--link-color), 10%);
+}
+
+/* Button Styles */
+button {
+    background: var(--btn-bg-color);
+    color: var(--btn-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+button:hover {
+    transform: scale(1.05);
+    background: lighten(var(--btn-bg-color), 10%);
+}
+
+/* Margin Bottom Class */
+.mb {
+    margin-bottom: var(--main-padding);
+}
+
+/* Hint Text */
+.hint {
+    color: var(--font-color-secondary);
+    font-size: 0.875rem; /* Increased slightly for readability */
+}
+
+/* Horizontal Rule Styles */
+hr {
+    background: var(--font-color-secondary);
+    height: 1px;
+    border: none;
+    margin-bottom: var(--main-padding);
+}
+
+/* Centered Container */
+.centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Form Control */
+.form-control {
+    width: 100%;
+    height: 60px;
+    background: var(--bg-secondary);
+    color: var(--font-color-primary);
+    resize: none;
+    font-family: inherit;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid lighten(var(--bg-secondary), 20%);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--link-color);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+}
+
+/* Product List Styles */
+.products {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--main-padding);
+}
+
+.product-item { 
+    overflow: hidden;
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    cursor: pointer;
+    background: var(--bg-secondary);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 4px 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Product Image Styles */
+.product-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-secondary);
+    padding: var(--secondary-padding);
+    text-align: center;
+    border-bottom: 1px solid lighten(var(--bg-secondary), 20%);
+}
+
+.product-image img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Product Info Styles */
+.product-info {
+    padding: var(--main-padding);
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    body {
+        padding: var(--secondary-padding);
+    }
+
+    .form-control {
+        height: 50px;
+        padding: 10px;
+    }
+
+    button {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    .product-item {
+        border-radius: 8px;
+    }
+}

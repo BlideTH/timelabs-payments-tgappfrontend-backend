@@ -8,6 +8,9 @@ import { environment } from '@env/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { Router } from '@angular/router'; 
+import { Firestore, collection, query, where, onSnapshot } from '@angular/fire/firestore';
+
 
 @Component({
   selector: 'app-product',
@@ -84,7 +87,9 @@ export class ProductComponent implements OnInit, OnDestroy {
     private telegram: TelegramService,
     private route: ActivatedRoute,
     private location: Location,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router,
+    private firestore: Firestore
   ) {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -96,7 +101,29 @@ export class ProductComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.telegram.BackButton.show();
     this.telegram.BackButton.onClick(() => this.goBack());
+  
+    // Ensure chat_id is resolved before querying Firestore
+    this.telegram.getUserChatId().then((chatId) => {
+      if (!chatId) {
+        console.error('Chat ID not available for Firestore query.');
+        return;
+      }
+  
+      const signalsRef = collection(this.firestore, 'paymentSignals');
+      const q = query(signalsRef, where('chat_id', '==', chatId));
+  
+      onSnapshot(q, (snapshot) => {
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data['status'] === 'paid') {
+            this.router.navigate(['/success']);
+          }
+        });
+      });
+    });
   }
+  
+  
 
   ngOnDestroy(): void {
     this.telegram.BackButton.offClick(() => this.goBack());
@@ -135,29 +162,24 @@ export class ProductComponent implements OnInit, OnDestroy {
         .post<{ invoice_link: string }>(`${environment.apiUrl}/createInvoiceLink`, paymentData)
         .toPromise();
 
-      if (response?.invoice_link) {
-        this.telegram.openInvoice(response.invoice_link, async (result: any) => {
-          console.log('Payment result:', result); // Log payment result for debugging
-          if (result.status === 'paid') {
-            alert('Оплата прошла успешно!');
-            this.errorMessage = null; // Clear error message
-            setTimeout(() => {
-              this.telegram.closeApp(); // Close app after successful payment
-            }, 2000); // Add slight delay to ensure the user sees the success message
-          } else if (result.status === 'cancelled') {
-            this.errorMessage = 'Оплата была отменена.';
-          } else {
-            this.errorMessage = null; // Avoid confusing the user
-          }
-        });
-      } else {
-        this.errorMessage = 'Ошибка при создании ссылки на оплату.';
+        if (response?.invoice_link) {
+          this.telegram.openInvoice(response.invoice_link, async (result: any) => {
+            if (result.status === 'paid') {
+              this.router.navigate(['/success']); // Redirect to success page
+            } else if (result.status === 'cancelled') {
+              this.errorMessage = 'Оплата была отменена.';
+            } else {
+              this.errorMessage = 'Ошибка при обработке платежа.';
+            }
+          });
+        } else {
+          this.errorMessage = 'Ошибка при создании ссылки на оплату.';
+        }
+      } catch (error) {
+        console.error('Payment processing error:', error);
+        this.errorMessage = 'Ошибка при обработке оплаты.';
+      } finally {
+        this.isLoading = false;
       }
-    } catch (error) {
-      console.error('Payment processing error:', error);
-      this.errorMessage = 'Ошибка при обработке оплаты.';
-    } finally {
-      this.isLoading = false;
-    }
   }
 }

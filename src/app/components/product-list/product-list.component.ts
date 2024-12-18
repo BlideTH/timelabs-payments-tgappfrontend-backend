@@ -14,7 +14,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     <ul class="products">
       <li *ngFor="let product of products; trackBy: trackById" class="product-item" [routerLink]="'/product/' + product.id" [@scrollReveal]>
         <div class="product-image">
-          <img [src]="product.image" [alt]="product.title" />
+          <img *ngIf="product.image" [src]="product.image" [alt]="product.title" />
         </div>
         <div class="product-info">
           <h3>{{ product.title }}</h3>

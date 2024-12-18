@@ -19,7 +19,7 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
     <div *ngIf="product; else notFound" class="centered" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
       <br />
-      <img [src]="product?.image" [alt]="product?.title" />
+      <img *ngIf="product?.image" [src]="product?.image" [alt]="product?.title" />
       <p>Цена за единицу: {{ product?.price }} ₽</p>
 
       <div>

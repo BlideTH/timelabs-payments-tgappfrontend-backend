@@ -25,8 +25,8 @@ export interface IProduct {
 function addDomainToLinkAndImage(product: IProduct) {
   return {
     ...product,
-    image: product.image ? domain + product.image : undefined, // Only add domain if image exists
-    link: product.link ? domain + product.link : undefined, // Only add domain if link exists
+    image: product.type === ProductType.Donate ? '' : domain + product.image, // No image for donations
+    link: product.type === ProductType.Donate ? '' : domain + product.link,  // No external link for donations
   };
 }
 
@@ -104,11 +104,11 @@ const products: IProduct[] = [
   {
     id: 'donate', // Unique ID for the donation product
     title: 'Поддержать проект', // Title for the donation product
-    link: undefined, // No link since this product isn't on the website
+    link: '', // No link since this product isn't on the website
     image: '', // No image for the donation product
-    text: 'Поддержите проект, внеся добровольный взнос.', // Description for the donation
+    text: 'Поддержите проект, внеся добровольный взнос', // Description for the donation
     type: ProductType.Donate, // Assign to the new "Donate" type
-    price: 100, // Undefined to allow flexible donation amounts
+    price: 100,
   },
 ];
 

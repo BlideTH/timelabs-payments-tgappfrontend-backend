@@ -8,7 +8,7 @@ import { environment } from '@env/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { Router } from '@angular/router'; 
+import { Router } from '@angular/router';
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
 
 @Component({
@@ -20,7 +20,21 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
       <h2 class="mb">{{ product?.title }}</h2>
       <br />
       <img [src]="product?.image" [alt]="product?.title" />
-      <p>Цена: {{ product?.price }} ₽</p>
+      <p>Цена за единицу: {{ product?.price }} ₽</p>
+
+      <div>
+        <label for="quantity">Количество:</label>
+        <input
+          id="quantity"
+          type="number"
+          min="1"
+          [(ngModel)]="quantity"
+          (ngModelChange)="updateTotalPrice()"
+        />
+      </div>
+
+      <p>Общая цена: {{ totalPrice }} ₽</p>
+
       <div>
         <label for="paymentMethod">Выберите способ оплаты:</label>
         <select id="paymentMethod" [(ngModel)]="selectedPaymentMethod">
@@ -29,11 +43,13 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
           </option>
         </select>
       </div>
+
       <button (click)="purchaseProduct()" class="payment-button" [disabled]="isLoading">
         {{ isLoading ? 'Обработка...' : 'Оплатить' }}
       </button>
       <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
+
     <ng-template #notFound>
       <div class="centered" [@flipInOut]>
         <h2>Продукт не найден</h2>
@@ -75,6 +91,8 @@ export class ProductComponent implements OnInit, OnDestroy {
   isLoading = false;
   errorMessage: string | null = null;
   selectedPaymentMethod: string;
+  quantity: number = 1; // Default quantity
+  totalPrice: number = 0; // Calculated total price
   paymentMethods = [
     { name: 'PayMaster', token: environment.paymentTokens.payMaster },
     { name: 'ЮKassa', token: environment.paymentTokens.yuKassa },
@@ -97,20 +115,27 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.product = this.products.getById(id) || null;
     }
     this.selectedPaymentMethod = this.paymentMethods[0].token;
+    this.updateTotalPrice();
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.telegram.BackButton.show();
     this.telegram.BackButton.onClick(() => this.goBack());
   }
 
   ngOnDestroy(): void {
     this.telegram.BackButton.offClick(() => this.goBack());
-    this.stopPollingPaymentSignal(); // Clean up the polling on component destroy
+    this.stopPollingPaymentSignal();
   }
 
   goBack() {
     this.location.back();
+  }
+
+  updateTotalPrice() {
+    if (this.product) {
+      this.totalPrice = this.product.price * this.quantity;
+    }
   }
 
   async purchaseProduct() {
@@ -118,51 +143,43 @@ export class ProductComponent implements OnInit, OnDestroy {
       alert('Продукт не найден.');
       return;
     }
-  
+
     try {
       this.isLoading = true;
       this.errorMessage = null;
-  
+
       const paymentData = {
         chat_id: await this.telegram.getUserChatId(),
         provider_token: this.selectedPaymentMethod,
         title: this.product.title,
-        description: `Payment for ${this.product.title}`,
+        description: `Payment for ${this.product.title} (x${this.quantity})`,
         currency: 'RUB',
         prices: [
           {
-            label: this.product.title,
-            amount: this.product.price * 100, // Telegram expects the smallest currency unit
+            label: `${this.product.title} x${this.quantity}`,
+            amount: this.totalPrice * 100, // Telegram expects the smallest currency unit
           },
         ],
-        payload: `product_${this.product.id}`, // Slug
+        payload: `product_${this.product.id}`,
       };
-  
+
       const response = await this.http
-        .post<{ invoice_link: string }>(
-          `${environment.apiUrl}/createInvoiceLink`,
-          paymentData
-        )
+        .post<{ invoice_link: string }>(`${environment.apiUrl}/createInvoiceLink`, paymentData)
         .toPromise();
-  
+
       if (response?.invoice_link) {
         const chatId = await this.telegram.getUserChatId();
-        const slug = `product_${this.product.id}`;
-  
-        console.log('Polling for chatId and slug:', { chatId, slug });
-  
-        // Start polling using `chatId` and `slug`
+        console.log('Polling for chatId:', chatId);
+
         this.startPollingForPaymentSignal(chatId);
-  
-        // Open the invoice in Telegram
         this.telegram.openInvoice(response.invoice_link, (result: any) => {
           console.log('Invoice result from openInvoice callback:', result);
-  
+
           if (result?.status === 'paid') {
             this.router.navigate(['/success']);
           } else if (result?.status === 'cancelled') {
             this.errorMessage = 'Оплата была отменена.';
-          } 
+          }
         });
       } else {
         this.errorMessage = 'Ошибка при создании ссылки на оплату.';
@@ -174,23 +191,16 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
-  
-  
-  
-  
-  
-  
+
   startPollingForPaymentSignal(chatId: number) {
     const interval = setInterval(async () => {
       try {
-        // Reference the Firestore collection
         const paymentSignalsRef = collection(this.firestore, 'paymentSignals');
-        // Query for documents matching the chat ID
         const q = query(paymentSignalsRef, where('chat_id', '==', chatId));
         const querySnapshot = await getDocs(q);
-  
+
         let paymentConfirmed = false;
-  
+
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           if (data && data['status'] === 'paid') {
@@ -198,24 +208,18 @@ export class ProductComponent implements OnInit, OnDestroy {
             paymentConfirmed = true;
           }
         });
-  
+
         if (paymentConfirmed) {
-          clearInterval(interval); // Stop polling
-          this.router.navigate(['/success']); // Redirect to success page
+          clearInterval(interval);
+          this.router.navigate(['/success']);
         } else {
           console.log('No successful payment found yet for chat ID:', chatId);
         }
       } catch (error) {
         console.error('Error polling Firestore for payment signal:', error.message);
       }
-    }, 3000); // Poll every 3 seconds
+    }, 3000);
   }
-  
-  
-  
-  
-  
-
 
   private stopPollingPaymentSignal() {
     if (this.pollingInterval) {

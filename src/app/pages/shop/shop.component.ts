@@ -23,6 +23,18 @@ import { CommonModule } from '@angular/common';
         [products]="products.byGroup['vpnkey']"
         [@scrollReveal]
       />
+      <app-product-list 
+        title="Консультации Таро"
+        subtitle="Удалённые консультации по Zoom или Telegram"
+        [products]="products.byGroup['tarot-consultation']"
+        [@scrollReveal]
+      />
+      <app-product-list 
+        title="Донат"
+        subtitle="Поддержите наш проект донатом"
+        [products]="products.byGroup['donate']"
+        [@scrollReveal]
+      />
     </div>
   `,
   animations: [

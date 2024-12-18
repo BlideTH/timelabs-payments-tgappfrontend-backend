@@ -18,9 +18,10 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
   template: `
     <div *ngIf="product; else notFound" class="centered" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
-      <br />
       <img *ngIf="product?.image" [src]="product?.image" [alt]="product?.title" />
-      <p>Цена за единицу: {{ product?.price }} ₽</p>
+      <p class="product-description">{{ product?.text }}</p> <!-- Added product description here -->
+      <br />
+            <p>Цена за единицу: {{ product?.price }} ₽</p>
 
       <div>
         <label for="quantity">Количество:</label>
@@ -30,6 +31,7 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
           min="1"
           [(ngModel)]="quantity"
           (ngModelChange)="updateTotalPrice()"
+          class="styled-input"
         />
       </div>
 
@@ -37,7 +39,7 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
 
       <div>
         <label for="paymentMethod">Выберите способ оплаты:</label>
-        <select id="paymentMethod" [(ngModel)]="selectedPaymentMethod">
+        <select id="paymentMethod" [(ngModel)]="selectedPaymentMethod" class="styled-select">
           <option *ngFor="let method of paymentMethods" [value]="method.token">
             {{ method.name }}
           </option>
@@ -72,6 +74,47 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
         color: #ff0000;
         margin-top: 10px;
       }
+      .product-description {
+        font-size: 1rem;
+        color: var(--tg-theme-text-color, #ffffff); /* Dynamic color based on theme */
+        margin-bottom: 15px;
+      }
+      .price,
+      .total-price {
+        font-size: 1rem;
+        color: var(--tg-theme-text-color, #ffffff); /* Dynamic color for price */
+        margin-bottom: 10px;
+      }
+      .input-group {
+        margin-bottom: 15px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--tg-theme-text-color, #ffffff); /* Dynamic color for label */
+        font-weight: bold;
+      }
+
+      .styled-input,
+      .styled-select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--tg-theme-button-color, #0088cc);
+        border-radius: 5px;
+        font-size: 1rem;
+        background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+        color: var(--tg-theme-text-color, #ffffff);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .styled-input:focus,
+      .styled-select:focus {
+        border-color: var(--tg-theme-link-color, #1b95e0);
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        outline: none;
+        }
+
     `,
   ],
   animations: [

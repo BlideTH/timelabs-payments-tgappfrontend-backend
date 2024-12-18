@@ -18,8 +18,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
         </div>
         <div class="product-info">
           <h3>{{ product.title }}</h3>
-          <p class="hint">{{ product.text }}</p>
-          <p class="hint">{{ product.time }}</p>
+          <p class="hint" *ngIf="product.time">{{ product.time }}</p>
         </div>
       </li>
     </ul>

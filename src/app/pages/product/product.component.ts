@@ -10,32 +10,58 @@ import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Router } from '@angular/router';
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatIconModule } from '@angular/material/icon';
+
 
 @Component({
   selector: 'app-product',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule],
   template: `
     <div *ngIf="product; else notFound" class="centered" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
       <img *ngIf="product?.image" [src]="product?.image" [alt]="product?.title" />
       <p class="product-description">{{ product?.text }}</p> <!-- Added product description here -->
       <br />
-            <p>Цена за единицу: {{ product?.price }} ₽</p>
+      <div *ngIf="isDonateProduct(); else regularProduct">
+  <p>Выберите сумму пожертвования:</p>
+  <mat-button-toggle-group [(value)]="selectedDonationAmount" hideSingleSelectionIndicator>
+    <mat-button-toggle *ngFor="let amount of donationAmounts" [value]="amount">
+      {{ amount }} ₽
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+  <p *ngIf="selectedDonationAmount" class="selected-amount">
+    Сумма пожертвования: {{ selectedDonationAmount }} ₽
+  </p>
+</div>
 
-      <div>
-        <label for="quantity">Количество:</label>
-        <input
-          id="quantity"
-          type="number"
-          min="1"
-          [(ngModel)]="quantity"
-          (ngModelChange)="updateTotalPrice()"
-          class="styled-input"
-        />
-      </div>
+<ng-template #regularProduct>
+  <p>Цена за единицу: {{ product?.price }} ₽</p>
+  <div class="quantity-selector">
+  <label>Количество:</label>
+  <div class="quantity-control">
+    <button mat-mini-fab color="accent" (click)="decrementQuantity()" [disabled]="quantity <= 1">
+      <mat-icon>remove</mat-icon>
+    </button>
+    <input
+      type="number"
+      min="1"
+      [(ngModel)]="quantity"
+      (ngModelChange)="updateTotalPrice()"
+      class="quantity-input"
+    />
+    <button mat-mini-fab color="accent" (click)="incrementQuantity()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+</div>
 
-      <p>Общая цена: {{ totalPrice }} ₽</p>
+
+  <p>Общая цена: {{ totalPrice }} ₽</p>
+</ng-template>
+
 
       <div>
         <label for="paymentMethod">Выберите способ оплаты:</label>
@@ -46,9 +72,10 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
         </select>
       </div>
 
-      <button (click)="purchaseProduct()" class="payment-button" [disabled]="isLoading">
+      <button mat-raised-button color="accent" class="custom-pay-button" (click)="purchaseProduct()" [disabled]="isLoading || (isDonateProduct() && !selectedDonationAmount)">
         {{ isLoading ? 'Обработка...' : 'Оплатить' }}
       </button>
+
       <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
 
@@ -115,6 +142,62 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
         outline: none;
         }
 
+        .custom-pay-button {
+          padding: 12px 24px;
+          font-size: 1rem;
+          font-weight: bold;
+          background-color: var(--tg-theme-button-color, #0088cc);
+          color: var(--tg-theme-button-text-color, #ffffff);
+          border-radius: 8px;
+          transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .custom-pay-button:hover {
+          background-color: lighten(var(--tg-theme-button-color, #0088cc), 10%);
+          transform: scale(1.05);
+        }
+
+        .custom-pay-button:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+        }
+      .quantity-selector {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .quantity-selector label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+        color: var(--tg-theme-text-color, #ffffff);
+      }
+
+      .quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .quantity-input {
+        width: 60px;
+        text-align: center;
+        padding: 8px;
+        font-size: 1rem;
+        border: 1px solid var(--tg-theme-button-color, #0088cc);
+        border-radius: 5px;
+        background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+        color: var(--tg-theme-text-color, #ffffff);
+      }
+
+      button[mat-mini-fab] {
+        min-width: 40px;
+        height: 40px;
+      }
+
+
+
     `,
   ],
   animations: [
@@ -132,6 +215,8 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
 export class ProductComponent implements OnInit, OnDestroy {
   product: IProduct | null = null;
   isLoading = false;
+  selectedDonationAmount: number | null = null;
+  donationAmounts = [100, 200, 500, 1000];
   errorMessage: string | null = null;
   selectedPaymentMethod: string;
   quantity: number = 1; // Default quantity
@@ -175,11 +260,28 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
+  isDonateProduct(): boolean {
+    return this.product?.type === 'donate';
+  }
+
   updateTotalPrice() {
     if (this.product) {
       this.totalPrice = this.product.price * this.quantity;
     }
   }
+
+  incrementQuantity() {
+    this.quantity++;
+    this.updateTotalPrice();
+  }
+  
+  decrementQuantity() {
+    if (this.quantity > 1) {
+      this.quantity--;
+      this.updateTotalPrice();
+    }
+  }
+  
 
   async purchaseProduct() {
     if (!this.product) {
@@ -191,16 +293,23 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = true;
       this.errorMessage = null;
 
+      const amount = this.isDonateProduct() ? this.selectedDonationAmount : this.product.price * this.quantity;
+
+    if (!amount) {
+      alert('Пожалуйста, выберите сумму пожертвования.');
+      return;
+    }
+      
       const paymentData = {
         chat_id: await this.telegram.getUserChatId(),
         provider_token: this.selectedPaymentMethod,
         title: this.product.title,
-        description: `Payment for ${this.product.title} (x${this.quantity})`,
+        description: `Payment for ${this.product.title}`,
         currency: 'RUB',
         prices: [
           {
             label: `${this.product.title} x${this.quantity}`,
-            amount: this.totalPrice * 100, // Telegram expects the smallest currency unit
+            amount: amount * 100, // Telegram expects the smallest currency unit
           },
         ],
         payload: `product_${this.product.id}`,

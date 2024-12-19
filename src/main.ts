@@ -10,6 +10,7 @@ import { provideStorage, getStorage } from '@angular/fire/storage';
 
 // Import environment for Firebase configuration
 import { environment } from './environments/environment';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 
 
@@ -30,7 +31,7 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
     provideStorage(() => getStorage()),
-    ...(appConfig.providers || []),
+    ...(appConfig.providers || []), provideAnimationsAsync(),
   ],
 }).catch((err) => console.error(err));
 

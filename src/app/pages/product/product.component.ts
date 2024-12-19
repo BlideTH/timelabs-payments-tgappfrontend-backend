@@ -13,12 +13,14 @@ import { Firestore, collection, query, where, getDocs } from '@angular/fire/fire
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
+
 
 
 @Component({
   selector: 'app-product',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule, MatRadioModule],
   template: `
     <div *ngIf="product; else notFound" class="centered" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
@@ -47,6 +49,7 @@ import { MatIconModule } from '@angular/material/icon';
     </button>
     <input
       type="number"
+      inputmode="decimal"
       min="1"
       [(ngModel)]="quantity"
       (ngModelChange)="updateTotalPrice()"
@@ -63,14 +66,17 @@ import { MatIconModule } from '@angular/material/icon';
 </ng-template>
 
 
-      <div>
-        <label for="paymentMethod">Выберите способ оплаты:</label>
-        <select id="paymentMethod" [(ngModel)]="selectedPaymentMethod" class="styled-select">
-          <option *ngFor="let method of paymentMethods" [value]="method.token">
-            {{ method.name }}
-          </option>
-        </select>
-      </div>
+<div class="payment-method-selector">
+  <p>Выберите способ оплаты:</p>
+  <mat-radio-group [(ngModel)]="selectedPaymentMethod">
+    <mat-radio-button *ngFor="let method of paymentMethods" [value]="method.token" [disabled]="method.disabled" class="payment-radio-button">
+      <img [src]="method.icon" alt="{{ method.name }}" class="payment-method-icon" />
+      <span>{{ method.name }}</span>
+    </mat-radio-button>
+  </mat-radio-group>
+</div>
+
+
 
       <button mat-raised-button color="accent" class="custom-pay-button" (click)="purchaseProduct()" [disabled]="isLoading || (isDonateProduct() && !selectedDonationAmount)">
         {{ isLoading ? 'Обработка...' : 'Оплатить' }}
@@ -127,7 +133,7 @@ import { MatIconModule } from '@angular/material/icon';
       .styled-select {
         width: 100%;
         padding: 8px;
-        border: 1px solid var(--tg-theme-button-color, #0088cc);
+        border: 1px solid var(--tg-theme-button-color, #cc8f00);
         border-radius: 5px;
         font-size: 1rem;
         background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
@@ -137,8 +143,8 @@ import { MatIconModule } from '@angular/material/icon';
 
       .styled-input:focus,
       .styled-select:focus {
-        border-color: var(--tg-theme-link-color, #1b95e0);
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        border-color: var(--tg-theme-link-color, #98e01b);
+        box-shadow: 0 0 5px#56980a;
         outline: none;
         }
 
@@ -146,14 +152,14 @@ import { MatIconModule } from '@angular/material/icon';
           padding: 12px 24px;
           font-size: 1rem;
           font-weight: bold;
-          background-color: var(--tg-theme-button-color, #0088cc);
+          background-color: var(--tg-theme-button-color, #ccaa00);
           color: var(--tg-theme-button-text-color, #ffffff);
           border-radius: 8px;
           transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .custom-pay-button:hover {
-          background-color: lighten(var(--tg-theme-button-color, #0088cc), 10%);
+          background-color: lighten(var(--tg-theme-button-color, #ccc500), 10%);
           transform: scale(1.05);
         }
 
@@ -185,16 +191,105 @@ import { MatIconModule } from '@angular/material/icon';
         text-align: center;
         padding: 8px;
         font-size: 1rem;
-        border: 1px solid var(--tg-theme-button-color, #0088cc);
+        border: 1px solid var(--tg-theme-button-color, #ffa726);
         border-radius: 5px;
-        background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+        background-color: var(--tg-theme-secondary-bg-color, #ffcc80);
         color: var(--tg-theme-text-color, #ffffff);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      /* Focus State for Quantity Input */
+      .quantity-input:focus {
+        outline: none;
+        border-color: #ffb74d;            /* Slightly lighter orange on focus */
+        box-shadow: 0 0 5px rgba(255, 167, 38, 0.6); /* Orange glow */
       }
 
       button[mat-mini-fab] {
         min-width: 40px;
         height: 40px;
       }
+
+      /* Base style for the increment and decrement buttons */
+      .quantity-control button[mat-mini-fab] {
+        background-color: #ffa726; /* Orange-yellowish color */
+        color: #ffffff;            /* White icon color */
+        transition: background-color 0.2s ease, transform 0.2s ease;
+      }
+
+      /* Hover state */
+      .quantity-control button[mat-mini-fab]:hover {
+        background-color: #ffb74d; /* Slightly lighter orange */
+      }
+
+      /* Active (clicked) state */
+      .quantity-control button[mat-mini-fab]:active {
+        background-color: #ffcc80; /* Even lighter orange */
+      }
+
+      /* Focus state */
+      .quantity-control button[mat-mini-fab]:focus {
+        outline: none;
+        box-shadow: 0 0 5px #ffa726; /* Subtle orange glow */
+      }
+
+      /* Ensure the icon inside the button stays visible */
+      .quantity-control button[mat-mini-fab] mat-icon {
+        color: #ffffff; /* Keep the icon white */
+      }
+
+      /* Prevent buttons from staying darkened on mobile */
+      .quantity-control button[mat-mini-fab]:not(:hover):not(:active) {
+        background-color: #ffa726; /* Reset to base color */
+      }
+
+
+
+      .payment-method-selector {
+        margin-bottom: 20px;
+      }
+
+      .payment-method-selector p {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--tg-theme-text-color, #ffffff);
+      }
+
+      .payment-radio-button {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ffa726; /* Orange border color */
+        border-radius: 8px;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .payment-radio-button.mat-radio-button-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Selected State */
+      .payment-radio-button.mat-radio-checked {
+        background-color: #ffcc80; /* Light orange background for selected state */
+        border-color: #ffb74d;     /* Slightly lighter orange border */
+      }
+
+      .payment-method-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 15px;
+      }
+
+      .payment-radio-button span {
+        font-size: 1.1rem;
+        color: var(--tg-theme-text-color, #ffffff);
+      }
+
+
 
 
 
@@ -222,10 +317,12 @@ export class ProductComponent implements OnInit, OnDestroy {
   quantity: number = 1; // Default quantity
   totalPrice: number = 0; // Calculated total price
   paymentMethods = [
-    { name: 'PayMaster', token: environment.paymentTokens.payMaster },
-    { name: 'ЮKassa', token: environment.paymentTokens.yuKassa },
-    { name: 'Сбербанк', token: environment.paymentTokens.sberbank },
+    { name: 'PayMaster', token: environment.paymentTokens.payMaster, icon: 'assets/icons/paymaster.png', disabled: false },
+    { name: 'ЮKassa', token: environment.paymentTokens.yuKassa, icon: 'assets/icons/yukassa.png', disabled: false },
+    { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
   ];
+  
+  
 
   private pollingInterval: any;
 

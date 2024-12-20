@@ -149,18 +149,19 @@ import { MatRadioModule } from '@angular/material/radio';
         }
 
         .custom-pay-button {
-          padding: 12px 24px;
-          font-size: 1rem;
+          padding: 16px 32px;
+          font-size: 1.2rem;
           font-weight: bold;
           background-color: var(--tg-theme-button-color, #ccaa00);
           color: var(--tg-theme-button-text-color, #ffffff);
-          border-radius: 8px;
+          border-radius: 10px;
+          text-transform: uppercase;
           transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .custom-pay-button:hover {
           background-color: lighten(var(--tg-theme-button-color, #ccc500), 10%);
-          transform: scale(1.05);
+          transform: scale(1.10);
         }
 
         .custom-pay-button:disabled {
@@ -191,7 +192,7 @@ import { MatRadioModule } from '@angular/material/radio';
         text-align: center;
         padding: 8px;
         font-size: 1rem;
-        border: 1px solid var(--tg-theme-button-color, #ffa726);
+        border: 2px solid var(--tg-theme-button-color, #ffa726) !important;
         border-radius: 5px;
         background-color: var(--tg-theme-secondary-bg-color, #ffcc80);
         color: var(--tg-theme-text-color, #ffffff);
@@ -319,7 +320,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   paymentMethods = [
     { name: 'PayMaster', token: environment.paymentTokens.payMaster, icon: 'assets/icons/paymaster.png', disabled: false },
     { name: 'ЮKassa', token: environment.paymentTokens.yuKassa, icon: 'assets/icons/yukassa.png', disabled: false },
-    { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
+  //  { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
   ];
   
   

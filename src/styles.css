@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter&family=Titillium+Web&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
     --main-padding: 16px;
@@ -21,7 +21,7 @@
 body {
     font-size: 1rem; /* Increased for better readability */
     padding: var(--main-padding);
-    font-family: "Inter", sans-serif;
+    font-family: 'Jost', sans-serif;
     background: var(--bg-primary);
     color: var(--font-color-primary);
 }
@@ -167,4 +167,4 @@ hr {
 }
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+

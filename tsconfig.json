@@ -26,7 +26,8 @@
     "paths": {
       "@env/*": ["environments/*"], // Optional alias for environments
       "*": ["*"] // Enable wildcard module imports
-    }
+    },
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

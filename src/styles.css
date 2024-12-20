@@ -19,12 +19,25 @@
 }
 
 body {
+    margin: 0;
+    overflow-x: hidden;
+    position: relative;
+    background-color: #1e1e1e;
     font-size: 1rem; /* Increased for better readability */
     padding: var(--main-padding);
     font-family: 'Jost', sans-serif;
     background: var(--bg-primary);
     color: var(--font-color-primary);
 }
+
+.parallax-layer {
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
 
 /* Link Styles */
 a {
@@ -144,6 +157,26 @@ hr {
 .product-info {
     padding: var(--main-padding);
 }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.01); /* Semi-transparent background */
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    backdrop-filter: blur(5px); /* Blurring effect */
+    -webkit-backdrop-filter: blur(5px); /* For Safari support */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    padding: 20px;
+    margin-bottom: 50px;
+  }
+
+  .glass-card h2 {
+    color: #fff; /* White text */
+    font-size: 1.5rem;
+  }
+
+  .glass-card p {
+    color: #e0e0e0; /* Light grey text */
+  }
 
 /* Responsive Design Enhancements */
 @media (max-width: 768px) {

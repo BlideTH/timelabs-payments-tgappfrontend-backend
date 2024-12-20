@@ -1,6 +1,7 @@
 {
   "name": "angular-tg-timelabs-app",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,9 +22,16 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
+    "@tsparticles/angular": "^3.0.0",
+    "@tsparticles/engine": "^3.7.1",
+    "@tsparticles/preset-stars": "^3.2.0",
     "firebase": "^10.14.1",
+    "rellax": "^1.12.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "tsparticles": "^3.7.1",
+    "tsparticles-engine": "^2.12.0",
+    "tsparticles-preset-stars": "^2.12.0",
     "zone.js": "~0.14.3"
   },
   "devDependencies": {

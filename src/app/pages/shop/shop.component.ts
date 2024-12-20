@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ProductListComponent],
   template: `
-    <div class="shop-container">
+    <div class="shop-container glass-card">
       <app-product-list 
         title="Консультации"
         subtitle="Удалённые консультации по Zoom"

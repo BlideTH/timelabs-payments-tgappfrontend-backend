@@ -22,12 +22,12 @@ import { MatRadioModule } from '@angular/material/radio';
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule, MatRadioModule],
   template: `
-    <div *ngIf="product; else notFound" class="centered" [@flipInOut]>
+    <div *ngIf="product; else notFound" class="centered glass-card" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
       <img *ngIf="product?.image" [src]="product?.image" [alt]="product?.title" />
       <p class="product-description">{{ product?.text }}</p> <!-- Added product description here -->
       <br />
-      <div *ngIf="isDonateProduct(); else regularProduct">
+      <div *ngIf="isDonateProduct(); else regularProduct" class="glass-card">
   <p>Выберите сумму пожертвования:</p>
   <mat-button-toggle-group [(value)]="selectedDonationAmount" hideSingleSelectionIndicator>
     <mat-button-toggle *ngFor="let amount of donationAmounts" [value]="amount">
@@ -41,7 +41,7 @@ import { MatRadioModule } from '@angular/material/radio';
 
 <ng-template #regularProduct>
   <p>Цена за единицу: {{ product?.price }} ₽</p>
-  <div class="quantity-selector">
+  <div class="quantity-selector glass-card">
   <label>Количество:</label>
   <div class="quantity-control">
     <button mat-mini-fab color="accent" (click)="decrementQuantity()" [disabled]="quantity <= 1">
@@ -66,7 +66,7 @@ import { MatRadioModule } from '@angular/material/radio';
 </ng-template>
 
 
-<div class="payment-method-selector">
+<div class="payment-method-selector glass-card">
   <p>Выберите способ оплаты:</p>
   <mat-radio-group [(ngModel)]="selectedPaymentMethod">
     <mat-radio-button *ngFor="let method of paymentMethods" [value]="method.token" [disabled]="method.disabled" class="payment-radio-button">
@@ -160,7 +160,7 @@ import { MatRadioModule } from '@angular/material/radio';
         }
 
         .custom-pay-button:hover {
-          background-color: lighten(var(--tg-theme-button-color, #ccc500), 10%);
+          background-color: lighten(var(--tg-theme-button-color, #ccc500), 100%);
           transform: scale(1.10);
         }
 
@@ -259,14 +259,27 @@ import { MatRadioModule } from '@angular/material/radio';
       .payment-radio-button {
         display: flex;
         align-items: center;
-        margin-bottom: 15px;
-        padding: 10px;
-        border: 1px solid #ffa726; /* Orange border color */
-        border-radius: 8px;
-        width: 100%;
-        cursor: pointer;
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        justify-content: flex-start;
+        gap: 10px; /* Space between the radio button and the icon/text */
+        position: relative;
       }
+
+      .payment-radio-button .mat-radio-container {
+        position: static; /* Reset any positioning that might cause displacement */
+      }
+
+      .payment-method-icon {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0; /* Prevent the icon from shrinking */
+      }
+
+      .payment-radio-button span {
+        font-size: 1.1rem;
+        color: var(--tg-theme-text-color, #ffffff);
+        flex-grow: 1; /* Allow the text to take the remaining space */
+      }
+
 
       .payment-radio-button.mat-radio-button-disabled {
         opacity: 0.5;
@@ -291,7 +304,7 @@ import { MatRadioModule } from '@angular/material/radio';
       }
 
 
-
+     
 
 
     `,

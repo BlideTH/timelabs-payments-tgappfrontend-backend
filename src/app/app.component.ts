@@ -2,12 +2,19 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TelegramService } from './services/telegram.service';
+import { ParallaxBackgroundComponent } from './components/parallax-background/parallax-background.component';
+import { ParticlesBackgroundComponent } from './components/particles-background/particles-background.component';
+import { ParticlesBackgroundModule } from './components/particles-background/particles-background.module';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
-  template: `<router-outlet></router-outlet>`, // Fixed self-closing syntax for Angular
+  imports: [CommonModule, RouterOutlet, ParticlesBackgroundModule, ParallaxBackgroundComponent],
+  template: `
+    <app-particles-background></app-particles-background>
+    <app-parallax-background></app-parallax-background>
+    <router-outlet></router-outlet>
+  `, // Fixed self-closing syntax for Angular
 })
 export class AppComponent implements OnInit {
   constructor(private telegram: TelegramService) {}

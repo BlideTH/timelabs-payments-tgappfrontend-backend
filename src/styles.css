@@ -3,8 +3,10 @@
 :root {
     --main-padding: 16px;
     --secondary-padding: 8px;
-    --font-color-primary: var(--tg-theme-text-color);
-    --font-color-secondary: var(--tg-theme-hint-color);
+    --font-color-primary-light: #000; /* Black for light mode */
+    --font-color-primary-dark: #fff; /* White for dark mode */
+    --font-color-secondary-light: #555;
+    --font-color-secondary-dark: #ccc;
     --bg-primary: var(--tg-theme-bg-color);
     --bg-secondary: var(--tg-theme-secondary-bg-color);
     --btn-bg-color: var(--tg-theme-button-color);
@@ -28,6 +30,39 @@ body {
     font-family: 'Jost', sans-serif;
     background: var(--bg-primary);
     color: var(--font-color-primary);
+}
+
+body.light {
+    --font-color-primary: #000;
+    --font-color-secondary: #2d2b2b;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --btn-bg-color: #6200ea; /* Purple */
+    --btn-text-color: #ffffff;
+    --link-color: #1e88e5;
+}
+
+body.dark {
+    --font-color-primary: var(--font-color-primary-dark);
+    --font-color-secondary: var(--font-color-secondary-dark);
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #2c2c2c;
+    --btn-bg-color: #ffa726; /* Orange */
+    --btn-text-color: #ffffff;
+    --link-color: #ffcc80;
+}
+
+
+body.light .glass-card,
+body.light .glass-card-radio,
+body.light .product-item {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+body.dark .glass-card,
+body.dark .glass-card-radio,
+body.dark .product-item {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .parallax-layer {
@@ -124,11 +159,15 @@ hr {
 
 .product-item { 
     overflow: hidden;
-    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     cursor: pointer;
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.07); /* Semi-transparent background */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    backdrop-filter: blur(5px); /* Blurring effect */
+    -webkit-backdrop-filter: blur(5px); /* For Safari support */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: auto;
 }
 
 .product-item:hover {
@@ -156,28 +195,45 @@ hr {
 /* Product Info Styles */
 .product-info {
     padding: var(--main-padding);
+    flex-grow: 1; /* Ensure content adjusts dynamically */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
 }
+.empty-product {
+    height: auto; /* Ensure height adjusts dynamically */
+    padding: 8px; /* Smaller padding for empty products */
+  }
+  
 
   .glass-card {
     background: rgba(255, 255, 255, 0.01); /* Semi-transparent background */
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
-    backdrop-filter: blur(5px); /* Blurring effect */
-    -webkit-backdrop-filter: blur(5px); /* For Safari support */
+    backdrop-filter: blur(1px); /* Blurring effect */
+    -webkit-backdrop-filter: blur(1px); /* For Safari support */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    padding: 20px;
+    margin-bottom: 50px;
+  }
+  .glass-card-radio {
+    background: rgba(255, 255, 255, 0.07); /* Semi-transparent background */
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    backdrop-filter: blur(10px); /* Blurring effect */
+    -webkit-backdrop-filter: blur(10px); /* For Safari support */
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
     padding: 20px;
     margin-bottom: 50px;
   }
 
-  .glass-card h2 {
-    color: #fff; /* White text */
-    font-size: 1.5rem;
-  }
+  .glass-card-radio:hover {
+    background: rgba(255, 255, 255, 0.1); /* Slightly brighter on hover */
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25); /* Enhanced shadow on hover */
+}
 
-  .glass-card p {
-    color: #e0e0e0; /* Light grey text */
-  }
 
+  
 /* Responsive Design Enhancements */
 @media (max-width: 768px) {
     body {
@@ -200,4 +256,16 @@ hr {
 }
 
 html, body { height: 100%; }
+
+
+  body.light h1, body.light h2, body.light h3, body.light h4, body.light .subtitle {
+    color: #000;
+  }
+  body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark .subtitle {
+    color: #fff;
+  }
+
+ 
+
+  
 

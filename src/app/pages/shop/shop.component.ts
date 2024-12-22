@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ProductListComponent],
   template: `
-    <div class="shop-container glass-card">
+    <div class="shop-container glass-card" [class.dark]="theme === 'dark'" [class.light]="theme === 'light'">
       <app-product-list 
         title="Консультации"
         subtitle="Удалённые консультации по Zoom"
@@ -25,7 +25,7 @@ import { CommonModule } from '@angular/common';
       />
       <app-product-list 
         title="Консультации Таро"
-        subtitle="Удалённые консультации по Zoom или Telegram"
+        subtitle="Удалённые консультации по Telegram"
         [products]="products.byGroup['tarot-consultation']"
         [@scrollReveal]
       /> 
@@ -58,8 +58,11 @@ import { CommonModule } from '@angular/common';
 export class ShopComponent {
   telegram = inject(TelegramService);
   products = inject(ProductsService);
+  theme: 'light' | 'dark' = 'dark';
 
   constructor() {
     this.telegram.BackButton.hide();
+    const tg = (window as any).Telegram?.WebApp;
+    this.theme = tg?.themeParams?.theme || 'dark';
   }
 }

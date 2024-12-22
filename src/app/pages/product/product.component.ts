@@ -41,7 +41,7 @@ import { MatRadioModule } from '@angular/material/radio';
 
 <ng-template #regularProduct>
   <p>Цена за единицу: {{ product?.price }} ₽</p>
-  <div class="quantity-selector glass-card">
+  <div class="quantity-selector glass-card-radio">
   <label>Количество:</label>
   <div class="quantity-control">
     <button mat-mini-fab color="accent" (click)="decrementQuantity()" [disabled]="quantity <= 1">
@@ -66,7 +66,7 @@ import { MatRadioModule } from '@angular/material/radio';
 </ng-template>
 
 
-<div class="payment-method-selector glass-card">
+<div class="payment-method-selector glass-card-radio">
   <p>Выберите способ оплаты:</p>
   <mat-radio-group [(ngModel)]="selectedPaymentMethod">
     <mat-radio-button *ngFor="let method of paymentMethods" [value]="method.token" [disabled]="method.disabled" class="payment-radio-button">
@@ -331,7 +331,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   quantity: number = 1; // Default quantity
   totalPrice: number = 0; // Calculated total price
   paymentMethods = [
-    { name: 'PayMaster', token: environment.paymentTokens.payMaster, icon: 'assets/icons/paymaster.png', disabled: false },
+   // { name: 'PayMaster', token: environment.paymentTokens.payMaster, icon: 'assets/icons/paymaster.png', disabled: false },
     { name: 'ЮKassa', token: environment.paymentTokens.yuKassa, icon: 'assets/icons/yukassa.png', disabled: false },
   //  { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
   ];

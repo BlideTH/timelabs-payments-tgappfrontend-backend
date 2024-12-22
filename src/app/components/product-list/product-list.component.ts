@@ -12,11 +12,11 @@ import { trigger, transition, style, animate } from '@angular/animations';
     <h2 class="mb">{{ title }}</h2>
     <h4 class="mb">{{ subtitle }}</h4>
     <ul class="products">
-      <li *ngFor="let product of products; trackBy: trackById" class="product-item" [routerLink]="'/product/' + product.id" [@scrollReveal]>
-        <div class="product-image">
+      <li *ngFor="let product of products; trackBy: trackById" [class.empty-product]="!product.image" class="product-item" [routerLink]="'/product/' + product.id" [@scrollReveal]>
+        <div *ngIf="product.image" class="product-image glass-card-radio">
           <img *ngIf="product.image" [src]="product.image" [alt]="product.title" />
         </div>
-        <div class="product-info">
+        <div class="product-info glass-card-radio">
           <h3>{{ product.title }}</h3>
           <p class="hint" *ngIf="product.time">{{ product.time }}</p>
         </div>
@@ -49,7 +49,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
       }
       .product-image img {
         display: block;
-        padding: 10px;
+        padding: 1px;
       }
       .product-info {
         padding: var(--main-padding);

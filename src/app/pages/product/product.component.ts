@@ -39,6 +39,19 @@ import { MatRadioModule } from '@angular/material/radio';
   </p>
 </div>
 
+<!-- Email Input Field -->
+<div class="email-input glass-card">
+  <label for="email">Введите ваш email:</label>
+  <input
+    id="email"
+    type="email"
+    [(ngModel)]="customerEmail"
+    required
+    placeholder="example@mail.com"
+    class="styled-input"
+  />
+</div>
+
 <ng-template #regularProduct>
   <p>Цена за единицу: {{ product?.price }} ₽</p>
   <div class="quantity-selector glass-card-radio">
@@ -92,6 +105,7 @@ import { MatRadioModule } from '@angular/material/radio';
       </div>
     </ng-template>
   `,
+
   styles: [
     `
       .payment-button {
@@ -326,6 +340,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   isLoading = false;
   selectedDonationAmount: number | null = null;
   donationAmounts = [100, 200, 500, 1000];
+  customerEmail: string = ''; // To store the customer's email address
   errorMessage: string | null = null;
   selectedPaymentMethod: string;
   quantity: number = 1; // Default quantity
@@ -399,18 +414,52 @@ export class ProductComponent implements OnInit, OnDestroy {
       alert('Продукт не найден.');
       return;
     }
-
+  
+    if (!this.customerEmail || !this.customerEmail.includes('@')) {
+      alert('Пожалуйста, введите действительный email.');
+      return;
+    }
+  
     try {
       this.isLoading = true;
       this.errorMessage = null;
+  
+      const amount = this.isDonateProduct()
+        ? this.selectedDonationAmount
+        : this.product.price * this.quantity;
+  
+      if (!amount) {
+        alert('Пожалуйста, выберите сумму пожертвования.');
+        return;
+      }
 
-      const amount = this.isDonateProduct() ? this.selectedDonationAmount : this.product.price * this.quantity;
+      // Generate a unique order ID
+       const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+        // Prepare the provider_data for YooKassa
+      const provider_data = {
+        receipt: {
+          customer: {
+            email: this.customerEmail, // Customer email from input
+          },
+          items: [
+            {
+              description: this.product.title,
+              quantity: this.quantity.toFixed(2), // Quantity from user input
+              amount: {
+                value: this.product.price.toFixed(2), // Total price in rubles
+                currency: 'RUB',
+              },
+              vat_code: 1, // Update this if your VAT code differs
+              payment_mode: 'full_prepayment',
+              payment_subject: 'service',
+            },
+          ],
+          
+        },
+      };
 
-    if (!amount) {
-      alert('Пожалуйста, выберите сумму пожертвования.');
-      return;
-    }
-      
+      // Payment data
       const paymentData = {
         chat_id: await this.telegram.getUserChatId(),
         provider_token: this.selectedPaymentMethod,
@@ -423,21 +472,19 @@ export class ProductComponent implements OnInit, OnDestroy {
             amount: amount * 100, // Telegram expects the smallest currency unit
           },
         ],
-        payload: `product_${this.product.id}`,
+        payload: orderId,
+        provider_data, // Use the correct key here
       };
 
+  
       const response = await this.http
         .post<{ invoice_link: string }>(`${environment.apiUrl}/createInvoiceLink`, paymentData)
         .toPromise();
-
+  
       if (response?.invoice_link) {
         const chatId = await this.telegram.getUserChatId();
-        console.log('Polling for chatId:', chatId);
-
         this.startPollingForPaymentSignal(chatId);
         this.telegram.openInvoice(response.invoice_link, (result: any) => {
-          console.log('Invoice result from openInvoice callback:', result);
-
           if (result?.status === 'paid') {
             this.router.navigate(['/success']);
           } else if (result?.status === 'cancelled') {
@@ -454,7 +501,8 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
-
+  
+ 
   startPollingForPaymentSignal(chatId: number) {
     const interval = setInterval(async () => {
       try {

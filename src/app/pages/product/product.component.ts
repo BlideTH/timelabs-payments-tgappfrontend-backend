@@ -366,7 +366,19 @@ export class ProductComponent implements OnInit, OnDestroy {
   ) {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.product = this.products.getById(id) || null;
+      this.products.getById(id).subscribe({
+        next: (product) => {
+          if (product) {
+            this.product = product;
+            this.updateTotalPrice();
+          } else {
+            console.error(`Product with ID ${id} not found.`);
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching product:', error);
+        },
+      });
     }
     this.selectedPaymentMethod = this.paymentMethods[0].token;
     this.updateTotalPrice();
@@ -432,33 +444,50 @@ export class ProductComponent implements OnInit, OnDestroy {
         alert('Пожалуйста, выберите сумму пожертвования.');
         return;
       }
-
-      // Generate a unique order ID
-       const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
-        // Prepare the provider_data for YooKassa
+      // Generate a unique order ID
+      const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+      // Gather Telegram user data
+      const telegram = (window as any).Telegram?.WebApp;
+      console.log('initData:', telegram?.initData);
+      console.log('initDataUnsafe:', telegram?.initDataUnsafe);
+
+      const telegram_user_id = telegram?.initDataUnsafe?.user?.id || 'Unknown';
+      const telegram_username = telegram?.initDataUnsafe?.user?.username || 'Unknown';
+  
+      // Gather device information
+      const device_info = `${navigator.platform} - ${navigator.userAgent}`;
+
+      console.log({
+        telegram_user_id,
+        telegram_username,
+        email: this.customerEmail,
+        device_info,
+      });
+  
+      // Prepare the provider_data for YooKassa
       const provider_data = {
         receipt: {
           customer: {
-            email: this.customerEmail, // Customer email from input
+            email: this.customerEmail,
           },
           items: [
             {
               description: this.product.title,
-              quantity: this.quantity.toFixed(2), // Quantity from user input
+              quantity: this.isDonateProduct() ? 1 : this.quantity.toFixed(2),
               amount: {
-                value: this.product.price.toFixed(2), // Total price in rubles
+                value: this.product.price.toFixed(2),
                 currency: 'RUB',
               },
-              vat_code: 1, // Update this if your VAT code differs
+              vat_code: 1,
               payment_mode: 'full_prepayment',
               payment_subject: 'service',
             },
           ],
-          
         },
       };
-
+  
       // Payment data
       const paymentData = {
         chat_id: await this.telegram.getUserChatId(),
@@ -469,13 +498,16 @@ export class ProductComponent implements OnInit, OnDestroy {
         prices: [
           {
             label: `${this.product.title} x${this.quantity}`,
-            amount: amount * 100, // Telegram expects the smallest currency unit
+            amount: amount * 100,
           },
         ],
         payload: orderId,
-        provider_data, // Use the correct key here
+        provider_data,
+        email: this.customerEmail,
+        telegram_user_id,
+        telegram_username,
+        device_info,
       };
-
   
       const response = await this.http
         .post<{ invoice_link: string }>(`${environment.apiUrl}/createInvoiceLink`, paymentData)
@@ -501,6 +533,7 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
+  
   
  
   startPollingForPaymentSignal(chatId: number) {

@@ -475,16 +475,20 @@ export class ProductComponent implements OnInit, OnDestroy {
           items: [
             {
               description: this.product.title,
-              quantity: this.isDonateProduct() ? 1 : this.quantity.toFixed(2),
+              quantity: this.isDonateProduct()
+                ? 1 // Donations don't have quantity beyond 1
+                : this.quantity, // Use selected quantity for regular products
               amount: {
-                value: this.product.price.toFixed(2),
+                value: this.isDonateProduct()
+                  ? this.selectedDonationAmount.toFixed(2) // Use donation amount for donations
+                  : (this.product.price * this.quantity).toFixed(2), // Calculate total for regular products
                 currency: 'RUB',
               },
               vat_code: 1,
               payment_mode: 'full_prepayment',
               payment_subject: 'service',
             },
-          ],
+          ],          
         },
       };
   
@@ -508,6 +512,23 @@ export class ProductComponent implements OnInit, OnDestroy {
         telegram_username,
         device_info,
       };
+
+      console.log('Constructed Receipt Item:', {
+        description: this.product.title,
+        quantity: this.isDonateProduct() ? 1 : this.quantity,
+        amount: {
+          value: this.isDonateProduct()
+            ? this.selectedDonationAmount.toFixed(2)
+            : (this.product.price * this.quantity).toFixed(2),
+          currency: 'RUB',
+        },
+      });
+      console.log('Provider Data:', provider_data);
+      console.log('Invoice Prices:', paymentData.prices);
+      
+
+      console.log('Invoice Amount:', paymentData.prices[0].amount);
+      console.log('Receipt Amount:', provider_data.receipt.items[0].amount.value);
   
       const response = await this.http
         .post<{ invoice_link: string }>(`${environment.apiUrl}/createInvoiceLink`, paymentData)

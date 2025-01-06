@@ -79,7 +79,7 @@ import { MatRadioModule } from '@angular/material/radio';
 </ng-template>
 
 
-<div class="payment-method-selector glass-card-radio">
+<div class="payment-method-selector glass-card-radio" *ngIf="paymentMethods.length > 1; else singleMethod">
   <p>Выберите способ оплаты:</p>
   <mat-radio-group [(ngModel)]="selectedPaymentMethod">
     <mat-radio-button *ngFor="let method of paymentMethods" [value]="method.token" [disabled]="method.disabled" class="payment-radio-button">
@@ -88,6 +88,10 @@ import { MatRadioModule } from '@angular/material/radio';
     </mat-radio-button>
   </mat-radio-group>
 </div>
+
+<ng-template #singleMethod>
+  <input type="hidden" [value]="paymentMethods[0]?.token" [(ngModel)]="selectedPaymentMethod" />
+</ng-template>
 
 
 
@@ -206,7 +210,7 @@ import { MatRadioModule } from '@angular/material/radio';
         text-align: center;
         padding: 8px;
         font-size: 1rem;
-        border: 2px solid var(--tg-theme-button-color, #ffa726) !important;
+        border: 2px solid var( #ffa726) !important;
         border-radius: 5px;
         background-color: var(--tg-theme-secondary-bg-color, #ffcc80);
         color: var(--tg-theme-text-color, #ffffff);

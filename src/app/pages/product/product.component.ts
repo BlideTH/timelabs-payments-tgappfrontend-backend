@@ -41,7 +41,7 @@ import { MatRadioModule } from '@angular/material/radio';
 
 <!-- Email Input Field -->
 <div class="email-input glass-card">
-  <label for="email">Введите ваш email:</label>
+  <label for="email">Эл. почта для отправки чека:</label>
   <input
     id="email"
     type="email"

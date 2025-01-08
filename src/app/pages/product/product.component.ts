@@ -7,9 +7,9 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { trigger, transition, style, animate, state } from '@angular/animations';
 import { Router } from '@angular/router';
-import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, getDocs, addDoc } from '@angular/fire/firestore';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -78,6 +78,66 @@ import { MatRadioModule } from '@angular/material/radio';
   <p>Общая цена: {{ totalPrice }} ₽</p>
 </ng-template>
 
+<!-- Booking & Payment Logic -->
+<div *ngIf="product?.type === 'consultation'">
+  <!-- Booking Workflow -->
+  <h2>Выберите специалиста</h2>
+  <div class="specialists">
+    <button
+      *ngFor="let specialist of specialists"
+      (click)="onSelectSpecialist(specialist)"
+      [class.selected]="selectedSpecialist?.id === specialist.id"
+    >
+      {{ specialist.name }}
+    </button>
+  </div>
+
+  <div *ngIf="selectedSpecialist">
+    <h2>Выберите дату</h2>
+    <div class="dates">
+      <button
+        *ngFor="let date of availableDates"
+        (click)="onSelectDate(date)"
+        [class.selected]="selectedDate === date"
+      >
+        {{ date }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="selectedDate">
+    <h2>Выберите время</h2>
+    <div class="times">
+      <button
+        *ngFor="let time of availableTimes"
+        (click)="selectedTime = time"
+        [class.selected]="selectedTime === time"
+      >
+        {{ time }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Button Logic -->
+<div>
+  <button
+    mat-raised-button
+    color="accent"
+    class="custom-pay-button"
+    (click)="purchaseProduct()"
+    [disabled]="
+      isLoading ||
+      (product?.type === 'consultation' &&
+        (!selectedSpecialist || !selectedDate || !selectedTime)) ||
+      (isDonateProduct() && !selectedDonationAmount)
+    "
+  >
+    {{ isLoading ? 'Обработка...' : 'Оплатить' }}
+  </button>
+</div>
+
+
 
 <div class="payment-method-selector glass-card-radio" *ngIf="paymentMethods.length > 1; else singleMethod">
   <p>Выберите способ оплаты:</p>
@@ -95,9 +155,6 @@ import { MatRadioModule } from '@angular/material/radio';
 
 
 
-      <button mat-raised-button color="accent" class="custom-pay-button" (click)="purchaseProduct()" [disabled]="isLoading || (isDonateProduct() && !selectedDonationAmount)">
-        {{ isLoading ? 'Обработка...' : 'Оплатить' }}
-      </button>
 
       <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
@@ -349,11 +406,26 @@ export class ProductComponent implements OnInit, OnDestroy {
   selectedPaymentMethod: string;
   quantity: number = 1; // Default quantity
   totalPrice: number = 0; // Calculated total price
+  specialists: any[] = [];
+  selectedSpecialist: any = null;
+  availableDates: string[] = [];
+  availableTimes: string[] = [];
+  selectedDate: string | null = null;
+  selectedTime: string | null = null;
+  category = ''; // To store the product's category
   paymentMethods = [
    // { name: 'PayMaster', token: environment.paymentTokens.payMaster, icon: 'assets/icons/paymaster.png', disabled: false },
     { name: 'ЮKassa', token: environment.paymentTokens.yuKassa, icon: 'assets/icons/yukassa.png', disabled: false },
   //  { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
   ];
+
+  bookingDetails: {
+    specialistId: string;
+    specialistName: string;
+    date: string;
+    time: string;
+  } | null = null;
+  
   
   
 
@@ -375,6 +447,11 @@ export class ProductComponent implements OnInit, OnDestroy {
           if (product) {
             this.product = product;
             this.updateTotalPrice();
+
+            this.category = product.type; // Set category
+            if (this.category === 'consultation') {
+              this.loadSpecialists(); // Load specialists if category is Consultation
+            }
           } else {
             console.error(`Product with ID ${id} not found.`);
           }
@@ -406,6 +483,44 @@ export class ProductComponent implements OnInit, OnDestroy {
     return this.product?.type === 'donate';
   }
 
+  async loadSpecialists(): Promise<void> {
+    if (!this.product) {
+      console.error('Cannot load specialists without product details.');
+      return;
+    }
+
+    console.log('Querying specialists for topic:', this.product.type);
+
+    const specialistsRef = collection(this.firestore, 'specialists');
+    const q = query(specialistsRef, where('topic', '==', this.product.type));
+    const querySnapshot = await getDocs(q);
+
+    this.specialists = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log('Loaded specialists:', this.specialists);
+  }
+
+  onSelectSpecialist(specialist: any): void {
+    this.selectedSpecialist = specialist;
+    this.availableDates = Object.keys(specialist.availability || {});
+    this.selectedDate = null;
+    this.selectedTime = null;
+
+    console.log('Specialist selected:', specialist);
+    console.log('Available dates:', this.availableDates);
+  }
+
+  onSelectDate(date: string): void {
+    this.selectedDate = date;
+    this.availableTimes = this.selectedSpecialist.availability[date] || [];
+
+    console.log('Date selected:', date);
+    console.log('Available times for date:', this.availableTimes);
+  }
+
   updateTotalPrice() {
     if (this.product) {
       this.totalPrice = this.product.price * this.quantity;
@@ -422,8 +537,7 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.quantity--;
       this.updateTotalPrice();
     }
-  }
-  
+  }  
 
   async purchaseProduct() {
     if (!this.product) {
@@ -435,6 +549,21 @@ export class ProductComponent implements OnInit, OnDestroy {
       alert('Пожалуйста, введите действительный email.');
       return;
     }
+
+    if (this.product.type === 'consultation' && (!this.selectedSpecialist || !this.selectedDate || !this.selectedTime)) {
+      alert('Выберите специалиста, дату и время.');
+      return;
+    }
+    const bookingDetails = this.product.type === 'consultation'
+    ? {
+        specialistId: this.selectedSpecialist.id,
+        specialistName: this.selectedSpecialist.name,
+        date: this.selectedDate,
+        time: this.selectedTime,
+      }
+    : null;
+  
+    console.log('Booking Details for Payment:', bookingDetails);
   
     try {
       this.isLoading = true;
@@ -495,6 +624,9 @@ export class ProductComponent implements OnInit, OnDestroy {
           ],          
         },
       };
+
+      // Booking details
+      const bookingDetails = this.bookingDetails; // Include booking details
   
       // Payment data
       const paymentData = {
@@ -515,6 +647,7 @@ export class ProductComponent implements OnInit, OnDestroy {
         telegram_user_id,
         telegram_username,
         device_info,
+        bookingDetails, // Include booking details in the payload
       };
 
       console.log('Constructed Receipt Item:', {
@@ -543,7 +676,10 @@ export class ProductComponent implements OnInit, OnDestroy {
         this.startPollingForPaymentSignal(chatId);
         this.telegram.openInvoice(response.invoice_link, (result: any) => {
           if (result?.status === 'paid') {
-            this.router.navigate(['/success']);
+            if (this.product.type === 'consultation') {
+              this.storeBookingDetails(orderId, this.bookingDetails);
+            }
+          //  this.router.navigate(['/success']);
           } else if (result?.status === 'cancelled') {
             this.errorMessage = 'Оплата была отменена.';
           }
@@ -558,6 +694,27 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
+
+  private async storeBookingDetails(orderId: string, bookingDetails: any): Promise<void> {
+    try {
+      const bookingRef = collection(this.firestore, 'bookingRecords');
+      const telegram = (window as any).Telegram?.WebApp;
+      const telegram_username = telegram?.initDataUnsafe?.user?.username || 'Unknown';
+      await addDoc(bookingRef, {
+        orderId,
+        bookingDetails,
+        productId: this.product?.id,
+        productTitle: this.product?.title,
+        email: this.customerEmail,
+        date: new Date().toISOString(),
+        telegram_username, // Add Telegram username
+      });
+      console.log('Booking details saved successfully!');
+    } catch (error) {
+      console.error('Error saving booking details:', error);
+    }
+  }
+  
   
   
  

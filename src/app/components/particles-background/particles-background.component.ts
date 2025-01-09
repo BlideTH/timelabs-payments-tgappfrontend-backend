@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { loadFull } from 'tsparticles';
 
 @Component({
-  selector: 'app-particles-background',
-  template: `<ngx-particles [id]="'tsparticles'" [particlesInit]="particlesInit" [options]="particlesOptions"></ngx-particles>`,
+    selector: 'app-particles-background',
+    template: `<ngx-particles [id]="'tsparticles'" [particlesInit]="particlesInit" [options]="particlesOptions"></ngx-particles>`,
+    standalone: false
 })
 export class ParticlesBackgroundComponent implements OnInit {
   particlesOptions: any;

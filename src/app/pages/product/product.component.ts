@@ -18,10 +18,9 @@ import { MatRadioModule } from '@angular/material/radio';
 
 
 @Component({
-  selector: 'app-product',
-  standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule, MatRadioModule],
-  template: `
+    selector: 'app-product',
+    imports: [CommonModule, FormsModule, MatButtonModule, MatButtonToggleModule, MatIconModule, MatRadioModule],
+    template: `
     <div *ngIf="product; else notFound" class="centered glass-card" [@flipInOut]>
       <h2 class="mb">{{ product?.title }}</h2>
       <img *ngIf="product?.image" [src]="product?.image" [alt]="product?.title" />
@@ -166,9 +165,8 @@ import { MatRadioModule } from '@angular/material/radio';
       </div>
     </ng-template>
   `,
-
-  styles: [
-    `
+    styles: [
+        `
       .payment-button {
         padding: 5px 10px;
         border: none;
@@ -383,18 +381,18 @@ import { MatRadioModule } from '@angular/material/radio';
 
 
     `,
-  ],
-  animations: [
-    trigger('flipInOut', [
-      transition(':enter', [
-        style({ transform: 'rotateY(90deg)', opacity: 0 }),
-        animate('0.5s ease-out', style({ transform: 'rotateY(0)', opacity: 1 })),
-      ]),
-      transition(':leave', [
-        animate('0.5s ease-out', style({ transform: 'rotateY(-90deg)', opacity: 0 })),
-      ]),
-    ]),
-  ],
+    ],
+    animations: [
+        trigger('flipInOut', [
+            transition(':enter', [
+                style({ transform: 'rotateY(90deg)', opacity: 0 }),
+                animate('0.5s ease-out', style({ transform: 'rotateY(0)', opacity: 1 })),
+            ]),
+            transition(':leave', [
+                animate('0.5s ease-out', style({ transform: 'rotateY(-90deg)', opacity: 0 })),
+            ]),
+        ]),
+    ]
 })
 export class ProductComponent implements OnInit, OnDestroy {
   product: IProduct | null = null;

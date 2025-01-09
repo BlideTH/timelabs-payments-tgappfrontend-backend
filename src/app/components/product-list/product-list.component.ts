@@ -5,10 +5,9 @@ import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
-  selector: 'app-product-list',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  template: `
+    selector: 'app-product-list',
+    imports: [CommonModule, RouterLink],
+    template: `
     <div *ngIf="products?.length; else noProducts" class="product-list-container">
       <h2 class="mb">{{ title }}</h2>
       <h4 class="mb">{{ subtitle }}</h4>
@@ -35,8 +34,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
       </div>
     </ng-template>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .products {
         list-style: none;
         padding: 0;
@@ -85,15 +84,15 @@ import { trigger, transition, style, animate } from '@angular/animations';
         color: var(--tg-theme-hint-color, #999999);
       }
     `,
-  ],
-  animations: [
-    trigger('scrollReveal', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
+    ],
+    animations: [
+        trigger('scrollReveal', [
+            transition(':enter', [
+                style({ opacity: 0, transform: 'translateY(20px)' }),
+                animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+            ]),
+        ]),
+    ]
 })
 export class ProductListComponent {
   @Input() title: string;

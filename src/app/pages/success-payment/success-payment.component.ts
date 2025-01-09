@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { TelegramService } from '../../services/telegram.service';
 
 @Component({
-  selector: 'app-success',
-  template: `
+    selector: 'app-success',
+    template: `
     <div class="centered">
       <div class="success-checkmark"></div>
       <h2 class="success-message">Оплата прошла успешно!</h2>
@@ -11,8 +11,8 @@ import { TelegramService } from '../../services/telegram.service';
       <button (click)="closeApp()" class="success-button">Закрыть приложение</button>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .centered {
         display: flex;
         flex-direction: column;
@@ -80,7 +80,8 @@ import { TelegramService } from '../../services/telegram.service';
         transform: scale(0.95);
       }
     `,
-  ],
+    ],
+    standalone: false
 })
 export class SuccessComponent implements OnInit {
   constructor(private telegram: TelegramService) {}

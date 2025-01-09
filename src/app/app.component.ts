@@ -7,14 +7,13 @@ import { ParticlesBackgroundComponent } from './components/particles-background/
 import { ParticlesBackgroundModule } from './components/particles-background/particles-background.module';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, RouterOutlet, ParticlesBackgroundModule, ParallaxBackgroundComponent],
-  template: `
+    selector: 'app-root',
+    imports: [CommonModule, RouterOutlet, ParticlesBackgroundModule, ParallaxBackgroundComponent],
+    template: `
     <app-particles-background></app-particles-background>
     <app-parallax-background></app-parallax-background>
     <router-outlet></router-outlet>
-  `, // Fixed self-closing syntax for Angular
+  `
 })
 export class AppComponent implements OnInit {
   constructor(private telegram: TelegramService) {}

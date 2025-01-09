@@ -6,10 +6,9 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-shop',
-  standalone: true,
-  imports: [CommonModule, ProductListComponent],
-  template: `
+    selector: 'app-shop',
+    imports: [CommonModule, ProductListComponent],
+    template: `
     <div class="shop-container glass-card" [class.dark]="theme === 'dark'" [class.light]="theme === 'light'">
       <ng-container *ngFor="let category of categories; trackBy: trackById">
         <div
@@ -36,8 +35,8 @@ import { CommonModule } from '@angular/common';
       <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .category-header {
       display: flex;
       justify-content: space-between;
@@ -84,15 +83,15 @@ import { CommonModule } from '@angular/common';
       color: #ffffff; /* Ensure text is visible on dark background */
     }
     `,
-  ],
-  animations: [
-    trigger('scrollReveal', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
-      ]),
-    ]),
-  ],
+    ],
+    animations: [
+        trigger('scrollReveal', [
+            transition(':enter', [
+                style({ opacity: 0, transform: 'translateY(20px)' }),
+                animate('0.5s ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+            ]),
+        ]),
+    ]
 })
 export class ShopComponent implements OnInit {
   telegram = inject(TelegramService);

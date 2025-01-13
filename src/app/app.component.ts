@@ -9,7 +9,7 @@ import { ParticlesBackgroundModule } from './components/particles-background/par
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ParticlesBackgroundModule, ParallaxBackgroundComponent],
+  imports: [CommonModule, RouterOutlet, ParticlesBackgroundComponent, ParticlesBackgroundModule, ParallaxBackgroundComponent],
   template: `
     <app-particles-background></app-particles-background>
     <app-parallax-background></app-parallax-background>

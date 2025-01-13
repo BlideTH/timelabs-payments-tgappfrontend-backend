@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { loadFull } from 'tsparticles';
+import { NgxParticlesModule } from '@tsparticles/angular';
 
 @Component({
   selector: 'app-particles-background',
+  imports: [NgxParticlesModule],
   template: `<ngx-particles [id]="'tsparticles'" [particlesInit]="particlesInit" [options]="particlesOptions"></ngx-particles>`,
 })
 export class ParticlesBackgroundComponent implements OnInit {
@@ -17,7 +19,7 @@ export class ParticlesBackgroundComponent implements OnInit {
     },
     particles: {
       number: {
-        value: 100,
+        value: 30,
       },
       color: {
         value: '#ffffff', // White stars
@@ -37,7 +39,7 @@ export class ParticlesBackgroundComponent implements OnInit {
       },
       links: {
         enable: true,
-        distance: 150,
+        distance: 30,
         color: '#ff6718',
         opacity: 0.3,
         width: 1,
@@ -69,7 +71,7 @@ export class ParticlesBackgroundComponent implements OnInit {
     },
     particles: {
       number: {
-        value: 100,
+        value: 50,
       },
       color: {
         value: '#000000', // Black stars
@@ -89,7 +91,7 @@ export class ParticlesBackgroundComponent implements OnInit {
       },
       links: {
         enable: true,
-        distance: 150,
+        distance: 50,
         color: '#6a0dad',
         opacity: 0.3,
         width: 1,

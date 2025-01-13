@@ -39,7 +39,7 @@ export class ParticlesBackgroundComponent implements OnInit {
       },
       links: {
         enable: true,
-        distance: 30,
+        distance: 100,
         color: '#ff6718',
         opacity: 0.3,
         width: 1,

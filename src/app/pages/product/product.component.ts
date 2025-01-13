@@ -95,11 +95,12 @@ import { MatRadioModule } from '@angular/material/radio';
   <div *ngIf="selectedSpecialist">
     <h2>Выберите дату</h2>
     <div class="dates">
-      <button
-        *ngFor="let date of availableDates"
-        (click)="onSelectDate(date)"
-        [class.selected]="selectedDate === date"
-      >
+    <button
+      *ngFor="let date of nextSevenDates; let i = index"
+      (click)="onSelectDate(date)"
+      [class.selected]="selectedDate === date"
+      [disabled]="isDateUnavailable(date)"
+    >
         {{ date }}
       </button>
     </div>
@@ -160,7 +161,7 @@ import { MatRadioModule } from '@angular/material/radio';
     </div>
 
     <ng-template #notFound>
-      <div class="centered" [@flipInOut]>
+      <div class="centered1" [@flipInOut]>
         <h2>Продукт не найден</h2>
         <button (click)="goBack()" class="payment-button">Вернуться назад</button>
       </div>
@@ -169,6 +170,13 @@ import { MatRadioModule } from '@angular/material/radio';
 
   styles: [
     `
+      .centered1 {
+        display: none; /* Default state is hidden */
+      }
+
+      .centered1[ng-reflect-ng-if="true"] {
+        display: block; /* Make it visible when the condition is true */
+      }
       .payment-button {
         padding: 5px 10px;
         border: none;
@@ -378,8 +386,89 @@ import { MatRadioModule } from '@angular/material/radio';
         color: var(--tg-theme-text-color, #ffffff);
       }
 
+      .specialists button {
+        margin: 5px;
+        padding: 10px 20px;
+        border: 1px solid #c97425;
+        background-color: #554848;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
 
-     
+      .specialists button:hover {
+        background-color: #fce145;
+        color: white;
+        border: 2px solid #fce145;
+      }
+
+      .specialists button.selected {
+        background-color: #ff9d00;
+        color: white;
+        border: 2px solid #bbcde0;
+      }
+
+      .specialists button:disabled {
+        background-color: #dddddd;
+        color: #aaaaaa;
+        cursor: not-allowed;
+      }
+
+      .dates button {
+        margin: 5px;
+        padding: 10px 20px;
+        border: 1px solid #c97425;
+        background-color: #554848;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .dates button:hover {
+        background-color: #fce145;
+        color: white;
+        border: 2px solid #fce145;
+      }
+
+      .dates button.selected {
+        background-color: #ff9d00;
+        color: white;
+        border: 2px solid #bbcde0;
+      }
+
+      .dates button:disabled {
+        background-color: #dddddd;
+        color: #aaaaaa;
+        cursor: not-allowed;
+      }
+
+      .times button {
+        margin: 5px;
+        padding: 10px 20px;
+        border: 1px solid #c97425;
+        background-color: #554848;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .times button:hover {
+        background-color: #fce145;
+        color: white;
+        border: 2px solid #fce145;
+      }
+
+      .times button.selected {
+        background-color: #ff9d00;
+        color: white;
+        border: 2px solid #bbcde0;
+      }
+
+      .times button:disabled {
+        background-color: #dddddd;
+        color: #aaaaaa;
+        cursor: not-allowed;
+      }
 
 
     `,
@@ -465,14 +554,30 @@ export class ProductComponent implements OnInit, OnDestroy {
     this.updateTotalPrice();
   }
 
+  nextSevenDates: string[] = [];
+
   ngOnInit(): void {
     this.telegram.BackButton.show();
     this.telegram.BackButton.onClick(() => this.goBack());
+    this.generateNextSevenDates();
   }
 
   ngOnDestroy(): void {
     this.telegram.BackButton.offClick(() => this.goBack());
-    this.stopPollingPaymentSignal();
+    this.stopPollingPaymentSignal();    
+  }
+
+  isDateUnavailable(date: string): boolean {
+    return !this.selectedSpecialist || !this.availableDates.includes(date);
+  }
+
+  private generateNextSevenDates(): void {
+    const today = new Date();
+    this.nextSevenDates = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i); // Add `i` days to today's date
+      return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    });
   }
 
   goBack() {
@@ -673,7 +778,7 @@ export class ProductComponent implements OnInit, OnDestroy {
   
       if (response?.invoice_link) {
         const chatId = await this.telegram.getUserChatId();
-        this.startPollingForPaymentSignal(chatId);
+        this.startPollingForPaymentSignal(chatId, orderId);
         this.telegram.openInvoice(response.invoice_link, (result: any) => {
           if (result?.status === 'paid') {
             if (this.product.type === 'consultation') {
@@ -718,11 +823,11 @@ export class ProductComponent implements OnInit, OnDestroy {
   
   
  
-  startPollingForPaymentSignal(chatId: number) {
+  startPollingForPaymentSignal(chatId: number, orderId: string) {
     const interval = setInterval(async () => {
       try {
         const paymentSignalsRef = collection(this.firestore, 'paymentSignals');
-        const q = query(paymentSignalsRef, where('chat_id', '==', chatId));
+        const q = query(paymentSignalsRef, where('chat_id', '==', chatId), where('order_id', '==', orderId));
         const querySnapshot = await getDocs(q);
 
         let paymentConfirmed = false;
@@ -739,7 +844,7 @@ export class ProductComponent implements OnInit, OnDestroy {
           clearInterval(interval);
           this.router.navigate(['/success']);
         } else {
-          console.log('No successful payment found yet for chat ID:', chatId);
+          console.log('No successful payment found yet for chat ID: ${chatId} and order ID: ${orderId}');
         }
       } catch (error) {
         console.error('Error polling Firestore for payment signal:', error.message);

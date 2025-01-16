@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     <div class="shop-container glass-card" [class.dark]="theme === 'dark'" [class.light]="theme === 'light'">
       <ng-container *ngFor="let category of categories; trackBy: trackById">
         <div
-          class="category-header"
+          class="category-header" id="{{ 'object-' + category.id }}"
           (click)="toggleCategory(category.id)"
           [class.expanded]="expandedCategories[category.id]"
         >
@@ -83,6 +83,10 @@ import { CommonModule } from '@angular/common';
       margin: 20px;
       color: #ffffff; /* Ensure text is visible on dark background */
     }
+
+    #object-47 { display: none; }
+
+    #object-46 { display: none; }
     `,
   ],
   animations: [

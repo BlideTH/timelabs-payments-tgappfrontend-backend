@@ -4,6 +4,7 @@ import { NgxParticlesModule } from '@tsparticles/angular';
 
 @Component({
   selector: 'app-particles-background',
+  standalone: true,
   imports: [NgxParticlesModule],
   template: `<ngx-particles [id]="'tsparticles'" [particlesInit]="particlesInit" [options]="particlesOptions"></ngx-particles>`,
 })

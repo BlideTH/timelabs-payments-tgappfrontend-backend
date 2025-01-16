@@ -31,7 +31,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     </div>
     <ng-template #noProducts>
       <div class="no-products-message">
-        <p>Продукты не найдены. Попробуйте позже.</p>
+        <p>Загрузка продуктов</p>
       </div>
     </ng-template>
   `,

@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate, state } from '@angular/animations';
 import { Router } from '@angular/router';
-import { Firestore, collection, query, where, getDocs, addDoc } from '@angular/fire/firestore';
+import { Firestore, collection, query, where, getDocs, addDoc, doc, runTransaction } from '@angular/fire/firestore';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -72,6 +72,18 @@ import { MatRadioModule } from '@angular/material/radio';
       <mat-icon>add</mat-icon>
     </button>
   </div>
+</div>
+
+<div class="coupon-input glass-card">
+  <label for="coupon">Купон:</label>
+  <input
+    id="coupon"
+    type="text"
+    [(ngModel)]="couponCode"
+    (input)="validateCoupon()"
+    placeholder="Введите код купона"
+  />
+  <p *ngIf="couponValidationMessage" [class.valid]="couponIsValid" class="coupon-message">{{ couponValidationMessage }}</p>
 </div>
 
 
@@ -507,6 +519,10 @@ export class ProductComponent implements OnInit, OnDestroy {
     { name: 'ЮKassa', token: environment.paymentTokens.yuKassa, icon: 'assets/icons/yukassa.png', disabled: false },
   //  { name: 'Сбербанк', token: environment.paymentTokens.sberbank, icon: 'assets/icons/sberbank.png', disabled: true },
   ];
+  couponCode: string = '';
+  couponValidationMessage: string = '';
+  couponDetails: any = null;
+  couponIsValid: boolean = false;
 
   bookingDetails: {
     specialistId: string;
@@ -626,10 +642,79 @@ export class ProductComponent implements OnInit, OnDestroy {
     console.log('Available times for date:', this.availableTimes);
   }
 
-  updateTotalPrice() {
-    if (this.product) {
-      this.totalPrice = this.product.price * this.quantity;
+  async validateCoupon() {
+    if (!this.couponCode.trim()) {
+      this.couponValidationMessage = '';
+      this.couponIsValid = false;
+      return;
     }
+  
+    try {
+      const couponsRef = collection(this.firestore, 'coupons');
+      const q = query(couponsRef, where('code', '==', this.couponCode));
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        this.couponValidationMessage = 'Купон не найден.';
+        this.couponIsValid = false;
+        return;
+      }
+  
+      const couponDoc = querySnapshot.docs[0];
+      const couponData = couponDoc.data();
+  
+      // Check expiry
+      if (couponData['expiryDate'] && new Date(couponData['expiryDate']) < new Date()) {
+        this.couponValidationMessage = 'Срок действия купона истек.';
+        this.couponIsValid = false;
+        return;
+      }
+  
+      // Check usage limit
+      if (couponData['usageLimit'] > 0 && couponData['usedCount'] >= couponData['usageLimit']) {
+        this.couponValidationMessage = 'Купон уже использован.';
+        this.couponIsValid = false;
+        return;
+      }
+  
+      // Check if coupon applies to the product
+      if (couponData['productIds'] && couponData['productIds'].length > 0 && !couponData['productIds'].includes(this.product?.id)) {
+        this.couponValidationMessage = 'Купон не действует для этого продукта.';
+        this.couponIsValid = false;
+        return;
+      }
+  
+    // Valid coupon!
+    this.couponDetails = couponData;
+    this.couponValidationMessage = 'Купон применен!';
+    this.couponIsValid = true;
+
+    // Update the displayed price
+    this.updateTotalPrice(); // Call your existing price updater
+
+  } catch (error) {
+    console.error('Ошибка при проверке купона:', error);
+    this.couponValidationMessage = 'Ошибка проверки купона.';
+    this.couponIsValid = false;
+  }
+  }
+
+  updateTotalPrice() {
+    if (!this.product) return;
+  
+    // Base price calculation
+    let basePrice = this.product.price * this.quantity;
+  
+    // Apply coupon discount
+    if (this.couponIsValid && this.couponDetails) {
+      if (this.couponDetails.discountType === 'percent') {
+        basePrice *= (1 - this.couponDetails.amount / 100);
+      } else {
+        basePrice -= this.couponDetails.amount;
+      }
+    }
+  
+    this.totalPrice = Math.max(basePrice, 0); // Ensure price isn’t negative
   }
 
   incrementQuantity() {
@@ -674,7 +759,7 @@ export class ProductComponent implements OnInit, OnDestroy {
       this.isLoading = true;
       this.errorMessage = null;
   
-      const amount = this.isDonateProduct()
+      let amount = this.isDonateProduct()
         ? this.selectedDonationAmount
         : this.product.price * this.quantity;
   
@@ -682,6 +767,49 @@ export class ProductComponent implements OnInit, OnDestroy {
         alert('Пожалуйста, выберите сумму пожертвования.');
         return;
       }
+
+        // Validate coupon again (in case it was modified after initial validation)
+      if (this.couponCode.trim()) {
+        await this.validateCoupon();
+        if (!this.couponIsValid) {
+          this.errorMessage = 'Неверный купон. Пожалуйста, проверьте код.';
+          return;
+        }
+      }
+
+      if (this.couponIsValid && this.couponDetails) {
+        if (this.couponDetails.discountType === 'percent') {
+          amount *= (1 - this.couponDetails.amount / 100);
+        } else {
+          amount -= this.couponDetails.amount;
+        }
+        amount = Math.max(amount, 0); // Prevent negative amounts
+      }
+
+        // Update coupon usage in Firestore (if valid)
+  if (this.couponIsValid && this.couponDetails) {
+    try {
+      const couponRef = doc(this.firestore, 'coupons', this.couponDetails.code);
+      await runTransaction(this.firestore, async (transaction) => {
+        const couponDoc = await transaction.get(couponRef);
+        const currentUsedCount = couponDoc.data()?.['usedCount'] || 0;
+
+        // Prevent over-usage
+        if (this.couponDetails.usageLimit > 0 && currentUsedCount >= this.couponDetails.usageLimit) {
+          throw new Error('Купон уже использован.');
+        }
+
+        transaction.update(couponRef, {
+          usedCount: currentUsedCount + 1,
+          status: this.couponDetails.usageLimit === 1 ? 'used' : 'active'
+        });
+      });
+    } catch (error) {
+      console.error('Ошибка обновления купона:', error);
+      this.errorMessage = 'Купон больше не действителен.';
+      return;
+    }
+  }
   
       // Generate a unique order ID
       const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -719,7 +847,7 @@ export class ProductComponent implements OnInit, OnDestroy {
               amount: {
                 value: this.isDonateProduct()
                   ? this.selectedDonationAmount.toFixed(2) // Use donation amount for donations
-                  : (this.product.price * this.quantity).toFixed(2), // Calculate total for regular products
+                  : amount.toFixed(2), // Calculate total for regular products
                 currency: 'RUB',
               },
               vat_code: 1,
@@ -753,6 +881,8 @@ export class ProductComponent implements OnInit, OnDestroy {
         telegram_username,
         device_info,
         bookingDetails, // Include booking details in the payload
+        couponCode: this.couponCode, // Include coupon code in payment data
+        couponDetails: this.couponDetails // Optional: include coupon details for backend
       };
 
       console.log('Constructed Receipt Item:', {

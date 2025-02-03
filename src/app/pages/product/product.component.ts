@@ -746,7 +746,7 @@ export class ProductComponent implements OnInit, OnDestroy {
             amount: amount * 100,
           },
         ],
-        payload: orderId,
+        payload: JSON.stringify({ orderId }),
         provider_data,
         email: this.customerEmail,
         telegram_user_id,

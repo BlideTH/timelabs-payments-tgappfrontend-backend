@@ -847,7 +847,7 @@ export class ProductComponent implements OnInit, OnDestroy {
               amount: {
                 value: this.isDonateProduct()
                   ? this.selectedDonationAmount.toFixed(2) // Use donation amount for donations
-                  : amount.toFixed(2), // Calculate total for regular products
+                  : this.product.price.toFixed(2), // Calculate total for regular products
                 currency: 'RUB',
               },
               vat_code: 1,
@@ -897,6 +897,7 @@ export class ProductComponent implements OnInit, OnDestroy {
       });
       console.log('Provider Data:', provider_data);
       console.log('Invoice Prices:', paymentData.prices);
+      console.log('Pyament Data:', paymentData);
       
 
       console.log('Invoice Amount:', paymentData.prices[0].amount);
